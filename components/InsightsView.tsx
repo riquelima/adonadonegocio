@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
-import { HistoryEntry, InsightData } from '../types';
+import React, { useState, useEffect } from 'react';
+import { HistoryEntry, InsightData, SavedInsight } from '../types';
 import { GoogleGenAI, Type } from "@google/genai";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { supabase } from '../supabaseClient';
 
 interface InsightsViewProps {
   history: HistoryEntry[];
   isGenerating: boolean;
   setIsGenerating: (isGenerating: boolean) => void;
   setNotification: (notification: { message: string; type: 'success' | 'error' }) => void;
+  savedInsight: SavedInsight | null;
+  onInsightUpdated: () => void;
 }
 
 const formatCurrency = (value: number): string => {
@@ -20,8 +23,36 @@ const KPI_CARD_STYLES = "bg-white shadow-lg rounded-xl p-4 sm:p-6 text-center";
 const KPI_LABEL_STYLES = "text-xs sm:text-sm text-slate-500 uppercase tracking-wider font-semibold";
 const KPI_VALUE_STYLES = "text-2xl sm:text-3xl font-bold mt-2";
 
-const InsightsView: React.FC<InsightsViewProps> = ({ history, isGenerating, setIsGenerating, setNotification }) => {
-    const [insights, setInsights] = useState<InsightData | null>(null);
+const InsightsView: React.FC<InsightsViewProps> = ({ history, isGenerating, setIsGenerating, setNotification, savedInsight, onInsightUpdated }) => {
+    const [insights, setInsights] = useState<InsightData | null>(savedInsight ? savedInsight.insight_data : null);
+
+    useEffect(() => {
+        setInsights(savedInsight ? savedInsight.insight_data : null);
+    }, [savedInsight]);
+
+    const handleDeleteInsight = async () => {
+        if (!savedInsight || !window.confirm('Tem certeza que deseja deletar este insight salvo? Esta ação não pode ser desfeita.')) {
+            return;
+        }
+        
+        setIsGenerating(true);
+        try {
+            const { error } = await supabase
+                .from('ai_insights')
+                .delete()
+                .eq('id', savedInsight.id);
+            
+            if (error) throw error;
+            
+            setNotification({ message: 'Insight deletado com sucesso.', type: 'success' });
+            onInsightUpdated();
+        } catch (error: any) {
+            console.error("Error deleting insight:", error);
+            setNotification({ message: `Erro ao deletar: ${error.message}`, type: 'error' });
+        } finally {
+            setIsGenerating(false);
+        }
+    };
 
     const handleGenerateInsights = async () => {
         if (history.length < 1) {
@@ -84,7 +115,20 @@ const InsightsView: React.FC<InsightsViewProps> = ({ history, isGenerating, setI
 
             const generatedText = response.text.trim();
             const parsedInsights: InsightData = JSON.parse(generatedText);
-            setInsights(parsedInsights);
+            
+            // Delete old insights before saving the new one
+            const { data: existingInsights } = await supabase.from('ai_insights').select('id');
+            if (existingInsights) {
+                for (const insight of existingInsights) {
+                    await supabase.from('ai_insights').delete().eq('id', insight.id);
+                }
+            }
+            
+            const { error: insertError } = await supabase.from('ai_insights').insert({ insight_data: parsedInsights }).single();
+            if (insertError) throw insertError;
+            
+            setNotification({ message: 'Novos insights gerados e salvos!', type: 'success' });
+            onInsightUpdated();
 
         } catch (error) {
             console.error("Error generating insights:", error);
@@ -111,7 +155,7 @@ const InsightsView: React.FC<InsightsViewProps> = ({ history, isGenerating, setI
                 </div>
             )}
             
-            {isGenerating && (
+            {isGenerating && !insights && (
                 <div className="flex flex-col items-center justify-center p-16 bg-white rounded-xl shadow-xl">
                      <svg className="mx-auto h-10 w-10 text-teal-500 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -124,6 +168,11 @@ const InsightsView: React.FC<InsightsViewProps> = ({ history, isGenerating, setI
 
             {insights && (
                 <div className="space-y-8 animate-fade-in-down">
+                    {savedInsight && (
+                        <div className="text-center p-3 bg-slate-100 rounded-lg text-sm text-slate-600">
+                            Análise gerada em: <span className="font-semibold">{new Date(savedInsight.created_at).toLocaleString('pt-BR')}</span>
+                        </div>
+                    )}
                      {/* KPIs */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
                         <div className={KPI_CARD_STYLES}>
@@ -171,9 +220,19 @@ const InsightsView: React.FC<InsightsViewProps> = ({ history, isGenerating, setI
                              </ul>
                         </div>
                     </div>
-                    <div className="text-center mt-6">
+                    <div className="text-center mt-6 flex justify-center items-center gap-4">
                         <button onClick={handleGenerateInsights} disabled={isGenerating} className="px-8 py-3 bg-teal-500 text-white hover:bg-teal-600 rounded-lg transition-colors font-semibold shadow-lg hover:shadow-xl disabled:bg-slate-300 disabled:cursor-not-allowed">
                             {isGenerating ? 'Gerando...' : 'Gerar Novos Insights'}
+                        </button>
+                        <button
+                            onClick={handleDeleteInsight}
+                            disabled={isGenerating}
+                            className="p-3 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            aria-label="Deletar insight salvo"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
                         </button>
                     </div>
                 </div>

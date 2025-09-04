@@ -52,3 +52,9 @@ export interface InsightData {
   };
   alerts: string[];
 }
+
+export interface SavedInsight {
+  id: string;
+  created_at: string;
+  insight_data: InsightData;
+}

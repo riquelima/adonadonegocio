@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { ExpenseItem, HistoryEntry, WeeklySummary, MonthlySummary } from './types';
+import { ExpenseItem, HistoryEntry, WeeklySummary, MonthlySummary, SavedInsight } from './types';
 import ExpenseTable from './components/ExpenseTable';
 import PricingSummary from './components/PricingSummary';
 import FinalSummary from './components/FinalSummary';
@@ -43,6 +43,7 @@ const App: React.FC = () => {
   const [clientReceipts, setClientReceipts] = useState<number>(0);
 
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [savedInsight, setSavedInsight] = useState<SavedInsight | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -79,9 +80,28 @@ const App: React.FC = () => {
     setIsLoading(false);
   }, []);
 
+  const fetchSavedInsight = useCallback(async () => {
+    const { data, error } = await supabase
+        .from('ai_insights')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found, which is not an error here.
+        console.error('Error fetching saved insight:', error);
+        setNotification({ message: 'Não foi possível carregar o insight salvo.', type: 'error' });
+    } else if (data) {
+        setSavedInsight(data);
+    } else {
+        setSavedInsight(null);
+    }
+  }, []);
+
   useEffect(() => {
     fetchHistory();
-  }, [fetchHistory]);
+    fetchSavedInsight();
+  }, [fetchHistory, fetchSavedInsight]);
 
   const resetCalculatorState = useCallback(() => {
     setFixedExpenses(INITIAL_FIXED_EXPENSES.map(item => ({...item, value: 0})));
@@ -329,7 +349,14 @@ const App: React.FC = () => {
       case 'charts':
         return <ChartsView history={history} />;
       case 'insights':
-        return <InsightsView history={history} isGenerating={isGenerating} setIsGenerating={setIsGenerating} setNotification={setNotification} />;
+        return <InsightsView 
+          history={history} 
+          isGenerating={isGenerating} 
+          setIsGenerating={setIsGenerating} 
+          setNotification={setNotification}
+          savedInsight={savedInsight}
+          onInsightUpdated={fetchSavedInsight}
+        />;
       case 'calculator':
       default:
         return (
@@ -432,7 +459,7 @@ const App: React.FC = () => {
         {isLoading ? (
              <div className="flex items-center justify-center p-16 bg-white rounded-xl shadow-xl">
                  <div className="text-center">
-                     <svg className="mx-auto h-10 w-10 text-teal-500 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg">
+                     <svg className="mx-auto h-10 w-10 text-teal-500 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 2000/svg">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
