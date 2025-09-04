@@ -33,7 +33,7 @@ const InsightsView: React.FC<InsightsViewProps> = ({ history, isGenerating, setI
         setInsights(null);
 
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const ai = new GoogleGenAI({ apiKey: "AIzaSyCsX9l10XCu3TtSCU1BSx-qOYrwUKYw2xk" });
             
             const responseSchema = {
                 type: Type.OBJECT,
