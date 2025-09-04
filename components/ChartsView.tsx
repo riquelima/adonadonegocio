@@ -139,12 +139,13 @@ const ChartsView: React.FC<ChartsViewProps> = ({ history }) => {
                     <ChartTitle>Composição das Despesas</ChartTitle>
                     <ResponsiveContainer width="100%" height={300}>
                         <PieChart>
-                            <Pie data={expenseCompositionData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius="80%" labelLine={false} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                            <Pie data={expenseCompositionData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius="80%">
                                 {expenseCompositionData.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </Pie>
                             <Tooltip formatter={tooltipFormatter} />
+                            <Legend wrapperStyle={{fontSize: "12px", paddingTop: "20px"}}/>
                         </PieChart>
                     </ResponsiveContainer>
                 </div>

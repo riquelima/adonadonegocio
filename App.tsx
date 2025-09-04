@@ -383,7 +383,7 @@ const App: React.FC = () => {
       <button 
         onClick={() => onClick(targetView)} 
         disabled={disabled}
-        className={`px-4 py-2 rounded-md font-semibold text-sm transition-colors ${
+        className={`px-4 py-2 rounded-md font-semibold text-sm transition-colors whitespace-nowrap ${
           isActive 
             ? 'bg-teal-500 text-white shadow' 
             : 'bg-white text-slate-600 hover:bg-slate-100'
@@ -398,15 +398,13 @@ const App: React.FC = () => {
     <div className="bg-slate-50 min-h-screen text-slate-800">
       {notification && <Notification notification={notification} onClose={() => setNotification(null)} />}
       <div className="container mx-auto p-4 md:p-8">
-        <header className="flex flex-col md:flex-row justify-between md:items-center mb-8">
-          <div>
+        <header className="text-center md:text-left mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-[#0D2B3E]">Calculadora de Precificação</h1>
             <p className="text-slate-500">A dona do Negócio - House Cleaning</p>
-          </div>
         </header>
 
         <div className="bg-white/80 backdrop-blur-sm shadow-md rounded-xl p-4 mb-8 flex flex-col sm:flex-row gap-4 sm:gap-2 justify-between items-center">
-            <nav className="flex items-center gap-2 flex-wrap">
+            <nav className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2 -mb-2 w-full sm:w-auto">
                 <NavButton activeView={view} targetView="calculator" label="Calculadora" onClick={() => setView('calculator')} disabled={isLoading} />
                 <NavButton activeView={view} targetView="history" label="Histórico" onClick={() => setView('history')} disabled={isLoading} />
                 <NavButton activeView={view} targetView="charts" label="Gráficos" onClick={() => setView('charts')} disabled={isLoading} />
@@ -434,7 +432,7 @@ const App: React.FC = () => {
         {isLoading ? (
              <div className="flex items-center justify-center p-16 bg-white rounded-xl shadow-xl">
                  <div className="text-center">
-                     <svg className="mx-auto h-10 w-10 text-teal-500 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                     <svg className="mx-auto h-10 w-10 text-teal-500 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>

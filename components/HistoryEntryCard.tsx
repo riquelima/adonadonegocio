@@ -19,7 +19,7 @@ const formatCurrency = (value: number): string => {
 const HistoryEntryCard: React.FC<HistoryEntryCardProps> = ({ entry, onView, onEdit, onDelete, className = '', isBusy = false }) => {
   return (
     <div className={`bg-white shadow-lg rounded-xl p-4 sm:p-6 transition-transform hover:scale-[1.02] hover:shadow-xl ${className}`}>
-      <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-4 sm:gap-2 border-b border-slate-100 pb-4 mb-4">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 sm:gap-2 border-b border-slate-100 pb-4 mb-4">
         <div>
           <p className="font-bold text-lg sm:text-xl text-[#0D2B3E]">Resumo do Dia</p>
           <p className="text-slate-500 font-medium text-sm sm:text-base">{entry.date}</p>

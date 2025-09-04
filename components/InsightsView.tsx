@@ -148,10 +148,10 @@ const InsightsView: React.FC<InsightsViewProps> = ({ history, isGenerating, setI
                         <div className="bg-white shadow-lg rounded-xl p-4 sm:p-6">
                             <h3 className="text-lg font-bold text-[#0D2B3E] mb-4 text-center">Top 5 Maiores Despesas</h3>
                              <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={insights.costAnalysis.topExpenses} layout="vertical" margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
+                                <BarChart data={insights.costAnalysis.topExpenses} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
                                     <CartesianGrid strokeDasharray="3 3" />
                                     <XAxis type="number" tickFormatter={(value) => `$${value.toLocaleString('pt-BR')}`} />
-                                    <YAxis type="category" dataKey="label" width={120} interval={0} tick={{ fontSize: 12 }} />
+                                    <YAxis type="category" dataKey="label" width={100} interval={0} tick={{ fontSize: 10 }} />
                                     <Tooltip formatter={(value: number) => [formatCurrency(value), 'Custo Total']} />
                                     <Bar dataKey="value" name="Custo Total" fill="#14b8a6" radius={[0, 5, 5, 0]} />
                                 </BarChart>
