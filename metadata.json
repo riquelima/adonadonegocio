@@ -1,0 +1,5 @@
+{
+  "name": "Calculadora de Precificação - A dona do Negócio",
+  "description": "Uma calculadora de precificação interativa para empresas de limpeza, permitindo que os usuários insiram despesas e custos para determinar os preços ideais dos serviços.",
+  "requestFramePermissions": []
+}
